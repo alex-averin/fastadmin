@@ -18,5 +18,5 @@ ORMS = [
     "tortoiseorm",
     "djangoorm",
     "sqlalchemy",
-    "ponyorm",
+    # "ponyorm",  # Disabled because ponyorm does not currently support Python 3.12
 ]

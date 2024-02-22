@@ -44,13 +44,11 @@ async def test_sign_in(superuser, client):
     assert r.status_code == 200, r.text
 
 
-async def test_me(session_id, client):
+async def test_me(authorized_client, session_id):
     assert session_id
     user_id = await get_user_id_from_session_id(session_id)
     assert user_id
-    r = await client.get(
-        "/api/me",
-    )
+    r = await authorized_client.get("/api/me")
     assert r.status_code == 200, r.text
     me = r.json()
     assert str(me["id"]) == str(user_id)
@@ -58,20 +56,22 @@ async def test_me(session_id, client):
 
 async def test_me_401(client):
     r = await client.get("/api/me")
+
     assert r.status_code == 401, r.text
 
 
-async def test_me_405(session_id, client):
-    assert session_id
-    r = await client.post("/api/me")
+async def test_me_405(authorized_client):
+    r = await authorized_client.post("/api/me")
+
     assert r.status_code == 405, r.text
 
 
-async def test_me_404(session_id, admin_models, superuser, client):
-    assert session_id
+async def test_me_404(authorized_client, admin_models, superuser):
     settings.ADMIN_USER_MODEL = superuser.get_model_name()
     del admin_models[superuser.__class__]
-    r = await client.get("/api/me")
+
+    r = await authorized_client.get("/api/me")
+
     assert r.status_code == 401, r.text
 
 
@@ -102,7 +102,7 @@ async def test_sign_out(superuser, client):
     assert r.status_code == 401, r.text
 
 
-async def test_sign_out_405(session_id, client):
-    assert session_id
-    r = await client.get("/api/sign-out")
+async def test_sign_out_405(authorized_client):
+    r = await authorized_client.get("/api/sign-out")
+
     assert r.status_code == 405, r.text

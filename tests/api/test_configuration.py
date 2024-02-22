@@ -95,189 +95,159 @@ def validate_configuration_response_data(response_data, is_auth=True):
             assert "filter_widget_props" in list_field["list_configuration"]
 
 
-async def test_configuration(session_id, event, client):
-    assert session_id
+async def test_configuration(authorized_client, event):
+    r = await authorized_client.get("/api/configuration")
 
-    r = await client.get(
-        "/api/configuration",
-    )
     assert r.status_code == 200, r.text
     response_data = r.json()
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_405(session_id, client):
-    assert session_id
-    r = await client.post(
-        "/api/configuration",
-    )
+async def test_configuration_405(authorized_client, client):
+    r = await authorized_client.post("/api/configuration")
+
     assert r.status_code == 405, r.text
 
 
 async def test_configuration_not_auth(client):
-    r = await client.get(
-        "/api/configuration",
-    )
+    r = await client.get("/api/configuration")
+
     assert r.status_code == 200, r.text
     response_data = r.json()
     validate_configuration_response_data(response_data, is_auth=False)
 
 
-async def test_configuration_list_display(session_id, admin_models, event, client):
-    assert session_id
+async def test_configuration_list_display(authorized_client, admin_models, event):
     event_admin_model = admin_models[event.__class__]
-
     event_admin_model.list_display = LIST_EVENT_FIELDS
-    r = await client.get(
-        "/api/configuration",
-    )
-    assert r.status_code == 200, r.text
+
+    r = await authorized_client.get("/api/configuration")
     response_data = r.json()
+
+    assert r.status_code == 200, r.text
     assert response_data
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_list_display_display_fields(session_id, admin_models, event, client):
-    assert session_id
+async def test_configuration_list_display_display_fields(authorized_client, admin_models, event):
     event_admin_model = admin_models[event.__class__]
-
     event_admin_model.list_display = ("started", "name_with_price")  # see EventAdmin display methods
-    r = await client.get(
-        "/api/configuration",
-    )
-    assert r.status_code == 200, r.text
+
+    r = await authorized_client.get("/api/configuration")
     response_data = r.json()
+
+    assert r.status_code == 200, r.text
     assert response_data
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_list_filter(session_id, admin_models, event, client):
-    assert session_id
+async def test_configuration_list_filter(authorized_client, admin_models, event):
     event_admin_model = admin_models[event.__class__]
-
     event_admin_model.list_display = LIST_EVENT_FIELDS
     event_admin_model.list_filter = LIST_EVENT_FIELDS
-    r = await client.get(
-        "/api/configuration",
-    )
-    assert r.status_code == 200, r.text
+
+    r = await authorized_client.get("/api/configuration")
     response_data = r.json()
+
+    assert r.status_code == 200, r.text
     assert response_data
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_sortable_by(session_id, admin_models, event, client):
-    assert session_id
+async def test_configuration_sortable_by(authorized_client, admin_models, event):
     event_admin_model = admin_models[event.__class__]
-
     event_admin_model.list_display = LIST_EVENT_FIELDS
     event_admin_model.list_filter = LIST_EVENT_FIELDS
     event_admin_model.sortable_by = ("name",)
-    r = await client.get(
-        "/api/configuration",
-    )
-    assert r.status_code == 200, r.text
+
+    r = await authorized_client.get("/api/configuration")
     response_data = r.json()
+
+    assert r.status_code == 200, r.text
     assert response_data
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_radio_fields(session_id, admin_models, event, client):
-    assert session_id
+async def test_configuration_radio_fields(authorized_client, admin_models, event):
     event_admin_model = admin_models[event.__class__]
-
     event_admin_model.list_display = LIST_EVENT_FIELDS
     event_admin_model.list_filter = LIST_EVENT_FIELDS
     event_admin_model.radio_fields = ("event_type",)
-    r = await client.get(
-        "/api/configuration",
-    )
-    assert r.status_code == 200, r.text
+
+    r = await authorized_client.get("/api/configuration")
     response_data = r.json()
+
+    assert r.status_code == 200, r.text
     assert response_data
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_filter_horizontal_vertical(session_id, admin_models, event, client):
-    assert session_id
+async def test_configuration_filter_horizontal_vertical(authorized_client, admin_models, event):
     event_admin_model = admin_models[event.__class__]
-
     event_admin_model.list_display = LIST_EVENT_FIELDS
     event_admin_model.list_filter = LIST_EVENT_FIELDS
     event_admin_model.filter_horizontal = ("participants",)
-    r = await client.get(
-        "/api/configuration",
-    )
+
+    r = await authorized_client.get("/api/configuration")
     assert r.status_code == 200, r.text
     response_data = r.json()
     assert response_data
     validate_configuration_response_data(response_data)
 
     event_admin_model.filter_vertical = ["participants"]
-    r = await client.get(
-        "/api/configuration",
-    )
+    r = await authorized_client.get("/api/configuration")
     assert r.status_code == 200, r.text
     response_data = r.json()
     assert response_data
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_raw_id_fields(session_id, admin_models, event, client):
-    assert session_id
+async def test_configuration_raw_id_fields(authorized_client, admin_models, event):
     event_admin_model = admin_models[event.__class__]
 
     event_admin_model.list_display = LIST_EVENT_FIELDS
     event_admin_model.list_filter = LIST_EVENT_FIELDS
     event_admin_model.raw_id_fields = ("participants", "tournament", "base")
-    r = await client.get(
-        "/api/configuration",
-    )
-    assert r.status_code == 200, r.text
+
+    r = await authorized_client.get("/api/configuration")
     response_data = r.json()
+
+    assert r.status_code == 200, r.text
     assert response_data
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_fields(session_id, admin_models, event, client):
-    assert session_id
+async def test_configuration_fields(authorized_client, admin_models, event):
     event_admin_model = admin_models[event.__class__]
 
     event_admin_model.fields = LIST_EVENT_FIELDS
-    r = await client.get(
-        "/api/configuration",
-    )
+    r = await authorized_client.get("/api/configuration")
+
     assert r.status_code == 200, r.text
     response_data = r.json()
     assert response_data
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_actions(session_id, admin_models, event, client):
-    assert session_id
+async def test_configuration_actions(authorized_client, admin_models, event):
     event_admin_model = admin_models[event.__class__]
 
     event_admin_model.actions = ("make_is_active",)
-    r = await client.get(
-        "/api/configuration",
-    )
+    r = await authorized_client.get("/api/configuration")
     assert r.status_code == 200, r.text
     response_data = r.json()
     assert response_data
     validate_configuration_response_data(response_data)
 
     event_admin_model.actions = ("test_action",)
-    r = await client.get(
-        "/api/configuration",
-    )
+    r = await authorized_client.get("/api/configuration")
     assert r.status_code == 200, r.text
     response_data = r.json()
     assert response_data
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_fieldsets(session_id, admin_models, event, client):
-    assert session_id
+async def test_configuration_fieldsets(authorized_client, admin_models, event):
     event_admin_model = admin_models[event.__class__]
 
     event_admin_model.fieldsets = [
@@ -297,22 +267,21 @@ async def test_configuration_fieldsets(session_id, admin_models, event, client):
             },
         ),
     ]
-    r = await client.get(
+
+    r = await authorized_client.get(
         "/api/configuration",
     )
-    assert r.status_code == 200, r.text
     response_data = r.json()
+
+    assert r.status_code == 200, r.text
     assert response_data
     validate_configuration_response_data(response_data)
 
 
-async def test_configuration_inlines(session_id, client):
-    assert session_id
-
-    r = await client.get(
-        "/api/configuration",
-    )
-    assert r.status_code == 200, r.text
+async def test_configuration_inlines(authorized_client):
+    r = await authorized_client.get("/api/configuration")
     response_data = r.json()
+
+    assert r.status_code == 200, r.text
     assert response_data
     validate_configuration_response_data(response_data)

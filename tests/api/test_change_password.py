@@ -1,11 +1,10 @@
 from fastadmin.models.base import ModelAdmin
 
 
-async def test_change_password(session_id, admin_models, user, client):
-    assert session_id
+async def test_change_password(authorized_client, admin_models, user):
     user_admin_model: ModelAdmin = admin_models[user.__class__]
     old_password = user.password
-    r = await client.patch(
+    r = await authorized_client.patch(
         f"/api/change-password/{user.id}",
         json={
             "password": "test",
@@ -19,7 +18,7 @@ async def test_change_password(session_id, admin_models, user, client):
     assert updated_user["password"] != old_password
     assert updated_user["password"] == "test"
 
-    r = await client.patch(
+    r = await authorized_client.patch(
         f"/api/change-password/{user.id}",
         json={
             "password": old_password,
@@ -29,11 +28,8 @@ async def test_change_password(session_id, admin_models, user, client):
     assert r.status_code == 200, r.text
 
 
-async def test_change_password_405(session_id, user, client):
-    assert session_id
-    r = await client.get(
-        f"/api/change-password/{user.id}",
-    )
+async def test_change_password_405(authorized_client, user):
+    r = await authorized_client.get(f"/api/change-password/{user.id}")
     assert r.status_code == 405, r.text
 
 
@@ -48,9 +44,8 @@ async def test_change_password_401(user, client):
     assert r.status_code == 401, r.text
 
 
-async def test_change_password_404_obj_not_found(session_id, client):
-    assert session_id
-    r = await client.patch(
+async def test_change_password_404_obj_not_found(authorized_client):
+    r = await authorized_client.patch(
         "/api/change-password/invalid",
         json={
             "password": "test",
@@ -59,7 +54,7 @@ async def test_change_password_404_obj_not_found(session_id, client):
     )
     assert r.status_code == 422, r.text
 
-    r = await client.patch(
+    r = await authorized_client.patch(
         "/api/change-password/-1",
         json={
             "password": "test",

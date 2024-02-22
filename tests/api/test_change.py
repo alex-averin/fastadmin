@@ -3,8 +3,7 @@ from fastadmin.models.helpers import get_admin_model
 from fastadmin.models.schemas import ModelFieldWidgetSchema
 
 
-async def test_change(session_id, admin_models, event, client):
-    assert session_id
+async def test_change(authorized_client, admin_models, event):
     event_admin_model: ModelAdmin = admin_models[event.__class__]
     fields = event_admin_model.get_model_fields_with_widget_types()
 
@@ -16,7 +15,7 @@ async def test_change(session_id, admin_models, event, client):
     participants_admin_model = get_admin_model(participants_model)
     participant = await participants_admin_model.save_model(None, {"username": "participant", "password": "test"})
 
-    r = await client.patch(
+    r = await authorized_client.patch(
         f"/api/change/{event.get_model_name()}/{event.id}",
         json={
             "name": "new name",
@@ -34,15 +33,15 @@ async def test_change(session_id, admin_models, event, client):
     assert item["updated_at"] == updated_event["updated_at"].isoformat()
     assert item["participants"] == [participant["id"]]
 
-    r = await client.delete(f"/api/delete/{participants_model}/{participant['id']}")
+    r = await authorized_client.delete(f"/api/delete/{participants_model}/{participant['id']}")
     assert r.status_code == 200, r.text
 
 
-async def test_change_405(session_id, event, client):
-    assert session_id
-    r = await client.get(
+async def test_change_405(authorized_client, event):
+    r = await authorized_client.get(
         f"/api/change/{event.get_model_name()}/{event.id}",
     )
+
     assert r.status_code == 405, r.text
 
 
@@ -54,25 +53,26 @@ async def test_change_401(superuser, event, client):
             "participants": [superuser.id],
         },
     )
+
     assert r.status_code == 401, r.text
 
 
-async def test_change_404_admin_class_found(session_id, admin_models, superuser, event, client):
-    assert session_id
+async def test_change_404_admin_class_found(authorized_client, admin_models, superuser, event):
     del admin_models[event.__class__]
-    r = await client.patch(
+
+    r = await authorized_client.patch(
         f"/api/change/{event.get_model_name()}/{event.id}",
         json={
             "name": "new name",
             "participants": [superuser.id],
         },
     )
+
     assert r.status_code == 404, r.text
 
 
-async def test_change_404_obj_not_found(session_id, superuser, event, client):
-    assert session_id
-    r = await client.patch(
+async def test_change_404_obj_not_found(authorized_client, superuser, event):
+    r = await authorized_client.patch(
         f"/api/change/{event.get_model_name()}/invalid",
         json={
             "name": "new name",
@@ -81,7 +81,7 @@ async def test_change_404_obj_not_found(session_id, superuser, event, client):
     )
     assert r.status_code == 422, r.text
 
-    r = await client.patch(
+    r = await authorized_client.patch(
         f"/api/change/{event.get_model_name()}/-1",
         json={
             "name": "new name",
